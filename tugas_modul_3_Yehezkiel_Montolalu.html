@@ -1,0 +1,449 @@
+    <!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Praktikum Multimedia - Modul 2</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            color: #222;
+        }
+        header {
+            background: #1f2937;
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        nav {
+            background: #111827;
+            padding: 12px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+            font-size: 14px;
+        }
+        nav a:hover { text-decoration: underline; }
+        main {
+            max-width: 1000px;
+            margin: 25px auto;
+            padding: 0 16px;
+        }
+        section {
+            background: white;
+            padding: 24px;
+            margin-bottom: 22px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.08);
+        }
+        h2 { color: #1f2937; border-bottom: 2px solid #ddd; padding-bottom: 8px; }
+        .media-box { text-align: center; margin: 20px 0; }
+        video, iframe { max-width: 100%; border-radius: 8px; }
+        audio { width: 100%; max-width: 600px; }
+        button {
+            border: 0;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 7px;
+            cursor: pointer;
+            background: #2563eb;
+            color: white;
+        }
+        button:hover { opacity: .85; }
+        #mapInfo, #dragStatus {
+            padding: 12px;
+            margin-top: 10px;
+            background: #eef2ff;
+            border-radius: 7px;
+        }
+        .drag-container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .dropzone {
+            width: 220px;
+            min-height: 130px;
+            border: 2px dashed #6b7280;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+        }
+        #dragItem {
+            padding: 20px;
+            background: #dbeafe;
+            border-radius: 8px;
+            cursor: grab;
+            text-align: center;
+            font-weight: bold;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background: #e5e7eb; }
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #555;
+        }
+        .note {
+            font-size: 14px;
+            color: #555;
+        }
+        #youtube {
+            overflow: hidden;
+            color: #f5f6f7;
+            background: radial-gradient(ellipse at 86% 10%, rgba(255, 0, 51, .2), transparent 38%), #17191d;
+            border: 1px solid #30343a;
+        }
+        #youtube h2 { margin-top: 0; color: #fff; border-color: #454950; }
+        #youtube p { color: #c8cbd0; }
+        .youtube-layout { display: grid; grid-template-columns: minmax(200px, .75fr) minmax(0, 1.4fr); align-items: center; gap: 32px; }
+        .youtube-kicker { color: #ff526b !important; font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
+        .youtube-copy h2 { font-size: 28px; }
+        .youtube-media { margin: 0; }
+        .youtube-link { position: relative; display: block; overflow: hidden; aspect-ratio: 16 / 9; border: 1px solid #494d54; border-radius: 10px; background: #0c0d0f; }
+        .youtube-preview { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform .35s ease, filter .35s ease; }
+        .youtube-play { position: absolute; top: 50%; left: 50%; display: grid; width: 68px; height: 48px; place-items: center; border-radius: 13px; background: #f00; transform: translate(-50%, -50%); transition: background .2s ease, transform .2s ease; }
+        .youtube-play::after { width: 0; height: 0; margin-left: 4px; border-top: 9px solid transparent; border-bottom: 9px solid transparent; border-left: 15px solid #fff; content: ""; }
+        .youtube-link:hover .youtube-preview { filter: brightness(.78); transform: scale(1.035); }
+        .youtube-link:hover .youtube-play { background: #d9002b; transform: translate(-50%, -50%) scale(1.08); }
+        .youtube-link:focus-visible, .youtube-button:focus-visible { outline: 3px solid #ff526b; outline-offset: 4px; }
+        .youtube-actions { margin-top: 18px; }
+        .youtube-button { display: inline-block; padding: 11px 18px; border-radius: 6px; background: #f00; color: #fff !important; font-weight: 700; text-decoration: none; transition: background .2s ease, transform .2s ease; }
+        .youtube-button:hover { background: #d9002b; transform: translateY(-2px); }
+        .youtube-caption { margin: 20px 0 0; font-size: 13px; }
+        @media (max-width: 680px) {
+            .youtube-layout { grid-template-columns: 1fr; gap: 16px; }
+            .youtube-copy h2 { font-size: 24px; }
+            #youtube { padding: 20px; }
+        }
+        :root {
+            --ink: #1c2b2a;
+            --muted: #5b6b68;
+            --line: #dce5df;
+            --green: #17665b;
+            --green-dark: #123d39;
+            --coral: #e35d46;
+            --gold: #efc46c;
+        }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: "Trebuchet MS", Verdana, sans-serif;
+            background: linear-gradient(135deg, #f2f5f1 0%, #e9f0ec 100%);
+            color: var(--ink);
+            line-height: 1.65;
+        }
+        header {
+            padding: 54px 22px 42px;
+            background-color: var(--green-dark);
+            background-image: repeating-linear-gradient(135deg, transparent 0 32px, rgba(255,255,255,.025) 32px 33px);
+        }
+        header h1 { margin: 8px 0; font-family: Georgia, "Times New Roman", serif; font-size: 42px; line-height: 1.15; }
+        header p { max-width: 720px; margin: 8px auto; color: #d7e5df; }
+        header .hero-label { color: var(--gold); font-size: 12px; font-weight: bold; text-transform: uppercase; }
+        header hr { margin: 22px auto; }
+        nav {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--line);
+            background: rgba(255,255,255,.96);
+            backdrop-filter: blur(12px);
+        }
+        nav a { margin: 0; padding: 8px 12px; border-radius: 5px; color: var(--ink); font-weight: bold; white-space: nowrap; transition: background .2s ease, color .2s ease; }
+        nav a:hover, nav a:focus-visible { background: var(--green); color: #fff; text-decoration: none; }
+        main { max-width: 1060px; margin: 30px auto; }
+        section { margin-bottom: 20px; padding: 26px 30px; border: 1px solid var(--line); border-top: 3px solid var(--green); border-radius: 8px; box-shadow: 0 5px 18px rgba(28,43,42,.045); scroll-margin-top: 76px; }
+        h2 { margin: 0 0 12px; padding-bottom: 10px; border-bottom: 1px solid var(--line); color: var(--green-dark); font-family: Georgia, "Times New Roman", serif; font-size: 26px; }
+        p { margin: 12px 0; }
+        code { padding: 2px 5px; border-radius: 4px; background: #edf3ef; color: #18594f; font-size: .9em; }
+        video, iframe { display: block; width: 100%; max-width: 800px; height: auto; margin: 0 auto; border-radius: 8px; background: #14201e; }
+        audio { accent-color: var(--green); }
+        button { min-height: 42px; padding: 9px 15px; border-radius: 5px; background: var(--green); font: inherit; font-size: 14px; font-weight: bold; transition: background .2s ease, transform .2s ease; }
+        button:hover { background: var(--green-dark); opacity: 1; transform: translateY(-1px); }
+        button:focus-visible, a:focus-visible { outline: 3px solid var(--coral); outline-offset: 3px; }
+        #mapInfo, #dragStatus { border-left: 4px solid var(--gold); border-radius: 4px; background: #f4f7f4; color: var(--muted); }
+        .dropzone { border-color: #91aaa0; border-radius: 7px; background: #f7faf7; color: var(--muted); }
+        #dragItem { border-radius: 5px; background: var(--green); color: #fff; }
+        #dragItem:active { cursor: grabbing; }
+        th, td { padding: 12px; border-color: var(--line); }
+        th { background: var(--green-dark); color: #fff; }
+        tbody tr:nth-child(even) { background: #f4f7f4; }
+        footer { padding: 28px 20px; background: var(--green-dark); color: #e1ece6; }
+        footer p { margin: 4px; }
+        .note { color: var(--muted); }
+        @media (max-width: 680px) {
+            header { padding: 38px 18px 30px; }
+            header h1 { font-size: 34px; }
+            nav { justify-content: flex-start; overflow-x: auto; }
+            main { margin: 20px auto; padding: 0 12px; }
+            section { padding: 21px 18px; }
+            h2 { font-size: 23px; }
+            table { min-width: 620px; }
+            section:has(table) { overflow-x: auto; }
+        }
+    </style>
+</head>
+
+<body>
+<header>
+    <p class="hero-label">Praktikum teknologi web</p>
+    <h1>Praktikum Multimedia</h1>
+    <p>Modul 2: HTML – Audio, Video, YouTube dan API</p>
+    <p>Web sederhana yang memuat materi Audio, Video, YouTube, Geolocation API, dan Drag and Drop API.</p>
+    <hr style="max-width:500px;border:0;border-top:1px solid rgba(255,255,255,.4);">
+    <p><strong>Nama:</strong> Yehezkiel Montolalu<br>
+    <strong>NIM:</strong> 240211060098</p>
+</header>
+
+<nav>
+    <a href="#audio">Audio</a>
+    <a href="#video">Video</a>
+    <a href="#youtube">YouTube</a>
+    <a href="#geo">Geolocation API</a>
+    <a href="#drag">Drag & Drop API</a>
+</nav>
+
+<main>
+    <section id="audio">
+        <h2>1. HTML Audio</h2>
+        <p>
+            Elemen <code>&lt;audio&gt;</code> digunakan untuk menyematkan suara ke halaman web.
+            Atribut <code>controls</code> menyediakan tombol play, pause, dan volume.
+        </p>
+
+        <div class="media-box">
+            <audio controls preload="metadata">
+                <source src="https://cdn.imageurlgenerator.com/uploads/b84df486-4943-44bf-8b25-b581e1a51dc7.mp3" type="audio/mpeg">
+                Browser Anda tidak mendukung elemen audio.
+            </audio>
+        </div>
+
+        <p class="note">
+            Format audio HTML5 yang dibahas pada modul: MP3, WAV, dan OGG.
+        </p>
+    </section>
+
+    <section id="video">
+        <h2>2. HTML Video</h2>
+        <p>
+            Elemen <code>&lt;video&gt;</code> digunakan untuk menampilkan video pada halaman web.
+            Atribut <code>controls</code> memberikan kontrol pemutaran.
+        </p>
+
+        <div class="media-box">
+            <video id="video1" width="560" height="315" controls>
+                <source src="https://cdn.imageurlgenerator.com/uploads/236435a8-ade2-4954-a37b-1de95c1f9a36.mp4" type="video/mp4">
+                Browser Anda tidak mendukung HTML video.
+            </video>
+
+            <div>
+                <button onclick="playPause()">Play / Pause</button>
+                <button onclick="makeBig()">Big</button>
+                <button onclick="makeSmall()">Small</button>
+                <button onclick="makeNormal()">Normal</button>
+            </div>
+        </div>
+
+        <p class="note">
+            Format video HTML5 yang dibahas pada modul: MP4, WebM, dan OGG.
+        </p>
+    </section>
+
+    <section id="youtube">
+        <div class="youtube-layout">
+            <div class="youtube-copy">
+                <p class="youtube-kicker">Pilihan video</p>
+                <h2>3. YouTube Video</h2>
+                <p>Klik thumbnail untuk membuka video dan playlist langsung di YouTube.</p>
+                <div class="youtube-actions">
+                    <a class="youtube-button" href="https://www.youtube.com/watch?v=MYFjxJ2kp0A&amp;list=RDMYFjxJ2kp0A&amp;start_radio=1" target="_blank" rel="noopener noreferrer">Tonton di YouTube</a>
+                </div>
+            </div>
+            <div class="youtube-media">
+                <a class="youtube-link" href="https://www.youtube.com/watch?v=MYFjxJ2kp0A&amp;list=RDMYFjxJ2kp0A&amp;start_radio=1" target="_blank" rel="noopener noreferrer" aria-label="Tonton video dan playlist di YouTube">
+                    <img class="youtube-preview" src="https://img.youtube.com/vi/MYFjxJ2kp0A/hqdefault.jpg" alt="Pratinjau video YouTube">
+                    <span class="youtube-play" aria-hidden="true"></span>
+                </a>
+            </div>
+        </div>
+        <p class="youtube-caption">Video akan terbuka di tab baru agar dapat diputar tanpa kendala pemutar sematan.</p>
+    </section>
+
+    <section id="geo">
+        <h2>4. HTML Geolocation API</h2>
+        <p>
+            Geolocation API digunakan untuk mendapatkan posisi geografis pengguna.
+            Browser akan meminta izin pengguna sebelum lokasi dapat diakses.
+        </p>
+
+        <div class="media-box">
+            <button onclick="getLocation()">Tampilkan Lokasi Saya</button>
+            <div id="mapInfo">Klik tombol untuk mendapatkan koordinat.</div>
+        </div>
+
+        <p class="note">
+            Data utama yang dikembalikan adalah latitude, longitude, dan accuracy.
+            Data lain seperti altitude, heading, speed, dan timestamp dapat tersedia
+            apabila didukung perangkat/browser.
+        </p>
+    </section>
+
+    <section id="drag">
+        <h2>5. HTML Drag and Drop API</h2>
+        <p>
+            Elemen dapat dibuat dapat diseret menggunakan atribut <code>draggable="true"</code>.
+            Event <code>ondragstart</code>, <code>ondragover</code>, dan <code>ondrop</code>
+            digunakan untuk proses drag and drop.
+        </p>
+
+        <div class="drag-container">
+            <div class="dropzone" id="zone1" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <div id="dragItem" draggable="true" ondragstart="drag(event)">
+                    Seret saya
+                </div>
+            </div>
+
+            <div class="dropzone" id="zone2" ondrop="drop(event)" ondragover="allowDrop(event)">
+                Lepaskan di sini
+            </div>
+        </div>
+
+        <div id="dragStatus">Coba seret kotak "Seret saya" ke area sebelah kanan.</div>
+    </section>
+
+    <section>
+        <h2>6. Ringkasan Materi</h2>
+        <table>
+            <tr>
+                <th>Materi</th>
+                <th>Elemen / API</th>
+                <th>Fungsi</th>
+            </tr>
+            <tr>
+                <td>Audio</td>
+                <td>&lt;audio&gt; dan &lt;source&gt;</td>
+                <td>Memutar file MP3 langsung dari awal.</td>
+            </tr>
+            <tr>
+                <td>Video</td>
+                <td>&lt;video&gt; dan &lt;source&gt;</td>
+                <td>Menampilkan dan mengontrol video.</td>
+            </tr>
+            <tr>
+                <td>YouTube</td>
+                <td>&lt;a&gt; dan &lt;img&gt;</td>
+                <td>Membuka video YouTube dari thumbnail atau tautan.</td>
+            </tr>
+            <tr>
+                <td>Geolocation</td>
+                <td>navigator.geolocation</td>
+                <td>Mendapatkan koordinat geografis setelah izin pengguna.</td>
+            </tr>
+            <tr>
+                <td>Drag & Drop</td>
+                <td>drag, dragover, drop</td>
+                <td>Memindahkan elemen dengan metode seret dan lepas.</td>
+            </tr>
+        </table>
+    </section>
+</main>
+
+<footer>
+    <p><strong>Nama:</strong> Yehezkiel Montolalu</p>
+    <p><strong>NIM:</strong> 240211060098</p>
+    <p>Tugas Praktikum Multimedia – Modul 3</p>
+</footer>
+
+<script>
+    // HTML5 Video API
+    const myVideo = document.getElementById("video1");
+
+    function playPause() {
+        if (myVideo.paused) {
+            myVideo.play();
+        } else {
+            myVideo.pause();
+        }
+    }
+
+    function makeBig() {
+        myVideo.width = 760;
+    }
+
+    function makeSmall() {
+        myVideo.width = 320;
+    }
+
+    function makeNormal() {
+        myVideo.width = 560;
+    }
+
+    // HTML Geolocation API
+    const mapInfo = document.getElementById("mapInfo");
+
+    function getLocation() {
+        if (navigator.geolocation) {
+            mapInfo.innerHTML = "Meminta izin lokasi...";
+            navigator.geolocation.getCurrentPosition(showPosition, showError);
+        } else {
+            mapInfo.innerHTML = "Geolocation tidak didukung oleh browser ini.";
+        }
+    }
+
+    function showPosition(position) {
+        mapInfo.innerHTML =
+            "Latitude: " + position.coords.latitude +
+            "<br>Longitude: " + position.coords.longitude +
+            "<br>Akurasi: " + position.coords.accuracy + " meter";
+    }
+
+    function showError(error) {
+        if (error.code === error.PERMISSION_DENIED) {
+            mapInfo.innerHTML = "Izin lokasi ditolak oleh pengguna.";
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+            mapInfo.innerHTML = "Informasi lokasi tidak tersedia.";
+        } else if (error.code === error.TIMEOUT) {
+            mapInfo.innerHTML = "Permintaan lokasi melebihi batas waktu.";
+        } else {
+            mapInfo.innerHTML = "Terjadi kesalahan saat mengambil lokasi.";
+        }
+    }
+
+    // HTML Drag and Drop API
+    function allowDrop(ev) {
+        ev.preventDefault();
+    }
+
+    function drag(ev) {
+        ev.dataTransfer.setData("text", ev.target.id);
+    }
+
+    function drop(ev) {
+        ev.preventDefault();
+        const data = ev.dataTransfer.getData("text");
+        const item = document.getElementById(data);
+
+        if (ev.target.classList.contains("dropzone")) {
+            ev.target.appendChild(item);
+            document.getElementById("dragStatus").innerHTML =
+                "Elemen berhasil dipindahkan!";
+        }
+    }
+</script>
+
+</body>
+</html>
